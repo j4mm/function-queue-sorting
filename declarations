@@ -1,0 +1,27 @@
+FUNCTION_BLOCK Press_Queue
+VAR_INPUT
+	Feed_Req: BOOL; //1
+	Recirc_Req: BOOL; //2
+	Flush_Req: BOOL; //3
+END_VAR
+VAR_IN_OUT
+	Feed_Remove: BOOL; //1
+	Recirc_Remove: BOOL; //2
+	Flush_Remove: BOOL; //3
+END_VAR
+VAR_OUTPUT
+	Run_Feed: BOOL; //1
+	Run_Recirc: BOOL; //2
+	Run_Flush: BOOL; //3
+END_VAR
+VAR
+	Queue: ARRAY [1..3] OF INT;
+	Op_Trig: ARRAY [1..3] OF R_TRIG; //rising trigger for new entries (true .Q indicates true rising edge)
+	Remove: ARRAY [1..3] OF BOOL;
+	Run: ARRAY [1..3] OF BOOL;
+	removeVal: INT;
+	qVal: INT; 
+	sort: INT;
+	added: BOOL; //flag to not assign a position in queue during new entry add
+	trig: INT;
+END_VAR
