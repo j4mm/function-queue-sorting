@@ -1,0 +1,55 @@
+
+//assign internal variables
+Op_Trig[1](CLK:= Feed_Req,Q=>,);
+Op_Trig[2](CLK:= Recirc_Req,Q=>,);
+Op_Trig[3](CLK:= Flush_Req,Q=>,);
+
+//assign the "remove" values to an array
+Remove[1]:= Feed_Remove; Remove[2]:= Recirc_Remove; Remove[3]:= Flush_Remove;
+
+//Leave function if there's no change 
+IF NOT(Op_Trig[1].Q OR Op_Trig[2].Q OR Op_Trig[3].Q OR Remove[1] OR Remove[2] OR Remove[3]) THEN RETURN; END_IF
+
+//remove finished operations from queue 
+FOR removeVal:= 1 TO 3 DO //loop through the "remove" values
+	IF Remove[removeVal] THEN //find a "remove" value
+		FOR qVal:= 1 TO 3 DO //loop through the queue values
+			IF Queue[qVal]:= removeVal THEN //find where the "remove" value is in the queue
+				FOR sort:= qVal TO 3 DO //make another loop for reassignment
+					IF NOT(sort = 3) THEN //below 3 do
+						Queue[sort]:= Queue[sort + 1]; //assign from position above
+						ELSIF sort = 3 THEN //remove data from last entry 
+							Queue[sort]:= 0; 
+					END_IF
+				END_FOR
+			END_IF
+		END_FOR
+		CASE removeVal OF //"remove" value removed from queue, 
+			1: Feed_Remove:= 0;
+			2: Recirc_Remove:= 0;
+			3: Flush_Remove:= 0;
+		END_CASE
+	END_IF
+END_FOR
+
+//leave if no new entry
+IF NOT(Op_Trig[1].Q OR Op_Trig[2].Q OR Op_Trig[3].Q) THEN RETURN; END_IF
+
+//assign new entry 
+FOR qVal:= 1 TO 3 DO //loop thru queue list
+	IF Queue[qVal] = 0 AND NOT(added) THEN //and find empty entry
+		FOR trig:= 1 TO 3 DO //loop thru triggers
+			IF Op_Trig[trig].Q AND NOT(added) THEN //find active trigger
+				Queue[qVal]:= trig; //assign the function to queue
+				added:= 1; //Flag that the entry has been added
+			END_IF
+		END_FOR
+	END_IF
+END_FOR
+
+//Assign run outputs from the first queue value
+CASE Queue[1] OF
+	1: Run_Feed:= 1; Run_Recirc:= 0; Run_Flush:= 0;
+	2: Run_Feed:= 0; Run_Recirc:= 1; Run_Flush:= 0;
+	3: Run_Feed:= 0; Run_Recirc:= 0; Run_Flush:= 1;
+END_CASE
